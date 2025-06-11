@@ -135,7 +135,7 @@ var cnItems = {
     ". The more fans you have, the more sponsorship money you get! Used for powerful mid-game purchases.": ". 你的粉丝越多，你得到的赞助钱就越多！用于强大的游戏中期购买。",
     "% boost": "% 提升",
     ". Once you reach this total distance, the 'Enter Marathon' button will appear. Entering the marathon simulates the race based on your current speed. Finishing it will reward you with Medals.": ". 一旦你达到这个总距离，“进入马拉松”按钮将出现。进入马拉松会根据你当前的速度模拟比赛。完成后可获得奖牌奖励。",
-    "": "",
+    "🏁 Enter Marathon! 🏁": "🏁 进入马拉松! 🏁",
     "": "",
     "": "",
     "": "",
@@ -517,7 +517,7 @@ var cnExcludeWhole = [
     /^e([\d\.]+)e([\d\.,]+)$/,
     /^x([\d\.]+)e([\d\.,]+)$/,
     /^([\d\.]+)e([\d\.,]+)x$/,
-    /^([\uD800-\uDBFF][\uDC00-\uDFFF])|([\u2600-\u27BF])|([\u2300-\u23FF])|([\u2B50-\u2B55])|([\u203C-\u3299])|[\u21A9\u21AA\u25B6\u25C0\u2B06\u2B07\u2B05\u2B95\u2B99\u2B9A]+$/,
+    // /^([\uD800-\uDBFF][\uDC00-\uDFFF])|([\u2600-\u27BF])|([\u2300-\u23FF])|([\u2B50-\u2B55])|([\u203C-\u3299])|[\u21A9\u21AA\u25B6\u25C0\u2B06\u2B07\u2B05\u2B95\u2B99\u2B9A]+$/,
     // /^([\uD800-\uDBFF][\uDC00-\uDFFF])|([\u2600-\u27BF])|([\u2300-\u23FF])|([\u2B50-\u2B55])|([\u203C-\u3299])+$/,
     // /^[\uD800-\uFFFF]+$/,
     /^[\u4E00-\u9FA5]+$/
