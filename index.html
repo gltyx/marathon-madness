@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathon Madness</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <script src="3.4.16.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="css2.css" rel="stylesheet">
+    <!-- Google tag (gtag.js) -->
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-V4R5TPWK9F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-V4R5TPWK9F');
+    </script> -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .stat-value {
+            font-weight: 900;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+        }
+        #tapArea {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .generator-row .buy-button {
+            min-width: 120px;
+            text-align: center;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+        }
+        .modal.active {
+            display: flex; /* Show when active */
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px #fde047, 0 0 10px #fde047, 0 0 15px #fde047; }
+            50% { box-shadow: 0 0 10px #facc15, 0 0 20px #facc15, 0 0 30px #facc15; }
+        }
+        .glowing-button {
+            animation: glow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col">
+<script src="chs.js"></script>
+<script src="core.js"></script>
+    <!-- Header -->
+    <header class="w-full max-w-lg mx-auto py-6 text-center">
+        <h1 class="text-4xl font-extrabold tracking-tight text-yellow-300 drop-shadow-lg">Marathon Madness</h1>
+    </header>
+
+    <!-- Main Game Container -->
+    <div class="relative flex-grow flex flex-col max-w-lg mx-auto w-full">
+        <!-- Top Stats Bar & Race Button -->
+        <div class="w-full bg-black/30 p-2 shadow-lg z-10">
+             <div class="grid grid-cols-3 gap-2 text-center mb-2">
+                <!-- Medals -->
+                <div class="bg-gray-800/50 p-2 rounded-lg col-span-1">
+                    <div id="medalsValue" class="stat-value text-yellow-300">🏅 0</div>
+                    <div class="stat-label">Medals</div>
+                    <div class="stat-label"><span id="medalBoostValue">0.00</span>% boost</div>
+
+                </div>
+                <!-- Distance -->
+                <div class="bg-gray-800/50 p-2 rounded-lg col-span-2">
+                    <div id="distanceValue" class="stat-value text-blue-400">0.0 m</div>
+                    <div class="w-full bg-gray-700 rounded-full h-4 my-1 relative">
+                        <div id="marathonProgressBar" class="bg-blue-500 h-4 rounded-full" style="width: 0%;"></div>
+                        <div id="marathonProgressText" class="absolute inset-0 w-full text-center text-xs font-bold text-white leading-4">0% to Marathon</div>
+                    </div>
+                    <div class="text-xs opacity-70">Total: <span id="totalDistanceValue">0.0</span> m</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <!-- Energy Stat -->
+                <div class="bg-gray-800/50 p-2 rounded-lg">
+                    <div id="energyValue" class="stat-value text-green-400">100/100</div>
+                    <div class="stat-label">Energy</div>
+                    <div class="w-full bg-gray-600 rounded-full h-1.5 mt-1">
+                        <div id="energyBar" class="bg-green-400 h-1.5 rounded-full" style="width: 100%"></div>
+                    </div>
+                </div>
+                <!-- Fans Stat -->
+                 <div class="bg-gray-800/50 p-2 rounded-lg">
+                    <div id="fansValue" class="stat-value text-pink-400">0</div>
+                    <div class="stat-label">Fans</div>
+                </div>
+                <!-- Money Stat -->
+                 <div class="bg-gray-800/50 p-2 rounded-lg">
+                    <div id="moneyValue" class="stat-value text-yellow-400">$0.00</div>
+                    <div class="stat-label">Money</div>
+                </div>
+            </div>
+            <div class="mt-2">
+                 <button id="raceDayButton" class="w-full bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-lg shadow-md transition-all hidden">
+                    🏁 Enter Marathon! 🏁
+                </button>
+            </div>
+        </div>
+
+        <!-- Middle Tap Area & Canvas -->
+        <div id="tapAreaContainer" class="relative flex-grow flex items-center justify-center p-4">
+            <div id="tapArea" class="relative z-10 w-64 h-64 bg-indigo-600 rounded-full flex flex-col items-center justify-center cursor-pointer shadow-2xl transition-transform duration-75 active:scale-95">
+                <div id="tapAreaContent">
+                    <div class="text-5xl">👟</div>
+                    <div class="mt-2 font-bold text-xl uppercase tracking-wider">Tap to Stride</div>
+                </div>
+                 <div id="restContent" class="hidden text-center">
+                    <div class="text-5xl">😴</div>
+                    <div class="mt-2 font-bold text-xl uppercase tracking-wider">Resting</div>
+                    <div id="restTimer" class="text-lg">30s</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Tabs -->
+        <div class="w-full bg-black/30 p-2 z-10">
+            <div class="flex border-b border-gray-600 items-center">
+                <button id="tab-generators" class="flex-1 py-2 px-4 text-center font-bold text-lg border-b-4 border-indigo-500 text-white">Auto-Runners</button>
+                <button id="tab-upgrades" class="flex-1 py-2 px-4 text-center font-bold text-lg border-b-4 border-transparent text-gray-400">Upgrades</button>
+            </div>
+            <div class="p-4 min-h-[240px] bg-gray-800/50 rounded-lg rounded-t-none">
+                <!-- Generators Tab Content -->
+                <div id="generators" class="space-y-3">
+                    <h2 class="text-xl font-bold border-b border-gray-600 pb-2 mb-3">Auto-Runners (<span id="distancePerSecond">0.00</span> m/s)</h2>
+                    <!-- Generator Rows will be dynamically inserted here -->
+                </div>
+                <!-- Upgrades Tab Content -->
+                <div id="upgrades" class="hidden space-y-3">
+                    <h2 class="text-xl font-bold border-b border-gray-600 pb-2 mb-3">General Upgrades</h2>
+                    <!-- Upgrade Rows will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Link at the bottom -->
+    <div class="w-full max-w-lg mx-auto text-center pb-4">
+        <a href="#" id="aboutLink" class="text-sm text-gray-400 hover:text-yellow-300 underline">About</a>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalsContainer">
+        <!-- Race Modal -->
+        <div id="raceModal" class="modal fixed inset-0 bg-black/80 items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg p-8 shadow-2xl w-11/12 max-w-md text-center">
+                <h2 class="text-3xl font-bold text-yellow-300 mb-4">Marathon in Progress!</h2>
+                <p class="mb-2">Simulating your 42.195km race...</p>
+                <div class="w-full bg-gray-700 rounded-full h-8 mb-2 border-2 border-gray-600">
+                    <div id="raceProgressBar" class="bg-blue-500 h-full rounded-full text-right pr-2 leading-8" style="width: 0%">0%</div>
+                </div>
+                <p class="text-2xl font-black" id="raceClock">00:00:00</p>
+            </div>
+        </div>
+        <!-- Race Results Modal -->
+        <div id="raceResultsModal" class="modal fixed inset-0 bg-black/80 items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg p-8 shadow-2xl w-11/12 max-w-md text-center">
+                <h2 class="text-3xl font-bold text-green-400 mb-2">Race Finished!</h2>
+                <p class="text-lg">Final Time: <span id="resultsTime" class="font-bold"></span></p>
+                <p class="text-xl my-4">You earned <span id="resultsMedals" class="font-bold text-yellow-300 text-2xl"></span> Medals! 🏅</p>
+                <p class="mb-6 opacity-80">Medals provide a permanent boost to your running speed. When you're ready, claim them to start your next run stronger than ever!</p>
+                <button id="prestigeButton" class="w-full bg-indigo-500 hover:bg-indigo-600 font-bold py-3 px-4 rounded-lg shadow-md text-lg">Claim Medals & Restart</button>
+            </div>
+        </div>
+        <!-- Offline Progress Modal -->
+        <div id="offlineModal" class="modal fixed inset-0 bg-black/80 items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg p-8 shadow-2xl w-11/12 max-w-md text-center">
+                <h2 class="text-2xl font-bold text-white mb-4">Welcome Back!</h2>
+                <p class="mb-4">While you were away for <strong id="offlineTime" class="text-yellow-300"></strong>, your generators were hard at work!</p>
+                <div class="text-left space-y-2 bg-gray-700/50 p-4 rounded-lg">
+                    <p>+<span id="offlineDistance" class="font-bold text-blue-400"></span> Distance</p>
+                    <p>+<span id="offlineFans" class="font-bold text-pink-400"></span> Fans</p>
+                    <p>+<span id="offlineMoney" class="font-bold text-yellow-400"></span> Money</p>
+                </div>
+                <button id="closeOfflineModalButton" class="mt-6 w-full bg-indigo-500 hover:bg-indigo-600 font-bold py-2 px-4 rounded-lg">Continue Running</button>
+            </div>
+        </div>
+        <!-- About Modal -->
+        <div id="aboutModal" class="modal fixed inset-0 bg-black/80 items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg p-6 shadow-2xl w-11/12 max-w-lg text-left">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-600 pb-3">
+                    <h2 class="text-2xl font-bold text-white">About Marathon Madness</h2>
+                    <button id="closeAboutModalButton" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
+                </div>
+                <div class="space-y-4 text-gray-300 max-h-[60vh] overflow-y-auto pr-4">
+                    <p>Welcome to <strong>Marathon Madness</strong>! An incremental game about the journey from a casual jogger to a marathon champion.</p>
+                    
+                    <h3 class="font-bold text-lg text-yellow-300 border-b border-gray-700 pb-1 mt-3">Core Mechanics</h3>
+                    <p><strong>Tapping:</strong> Tap the shoe to run. This consumes <span class="text-green-400 font-bold">Energy</span> but generates <span class="text-blue-400 font-bold">Distance</span>. Running out of energy? Hit the 'Rest' button to recover.</p>
+                    <p><strong>Auto-Runners:</strong> These are your bread and butter for passive income. Purchase and upgrade them in the 'Auto-Runners' tab to automatically gain distance over time.</p>
+                    <p><strong>Upgrades:</strong> In the 'Upgrades' tab, you can spend your earnings to boost your abilities, like increasing distance per tap or reducing rest time.</p>
+                    
+                    <h3 class="font-bold text-lg text-yellow-300 border-b border-gray-700 pb-1 mt-3">Currencies</h3>
+                    <ul class="list-disc list-inside space-y-2 pl-2">
+                        <li><strong class="text-blue-400">Distance (m):</strong> Your primary early-game currency, earned by tapping and from Auto-Runners.</li>
+                        <li><strong class="text-yellow-400">Money ($):</strong> Earned from <span class="text-pink-400">Fans</span>. The more fans you have, the more sponsorship money you get! Used for powerful mid-game purchases.</li>
+                        <li><strong class="text-pink-400">Fans:</strong> You gain fans for every 100m of total distance you run. They are key to earning money.</li>
+                        <li><strong class="text-yellow-300">Medals (🏅):</strong> The prestige currency. Earned by completing a full marathon. Medals provide a permanent boost to all distance and money gains.</li>
+                    </ul>
+
+                    <h3 class="font-bold text-lg text-yellow-300 border-b border-gray-700 pb-1 mt-3">The Goal: The Marathon</h3>
+                    <p>Your main objective is to run <strong>42.195km</strong>. Once you reach this total distance, the 'Enter Marathon' button will appear. Entering the marathon simulates the race based on your current speed. Finishing it will reward you with Medals.</p>
+                    <p>After the marathon, you'll have the option to 'Prestige'. This will restart your progress (distance, money, generators, etc.) but you'll keep your hard-earned Medals, making each subsequent run much faster. Good luck!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    // --- GAME CONSTANTS ---
+    const MARATHON_DISTANCE = 42195;
+    const STEPS_TO_DISTANCE_CONVERSION = 100;
+    const ENERGY_DRAIN_PER_TAP = 2;
+    const TICK_RATE = 100;
+    const MAX_OFFLINE_HOURS = 8;
+    
+    // --- Game State & DOM References (to be initialized later) ---
+    let gameState;
+    let dom;
+
+    function getInitialState() {
+        return {
+            distance: 0.001, totalDistance: 0.001, fans: 0, money: 0, medals: 0, medalBoost: 1, lastFanMilestone: 0,
+            sponsorTier: { level: 1, moneyPerFanPerSecond: 0.01 },
+            energy: { current: 100, max: 100 },
+            generators: {
+                shoes:      { label: 'Running Shoes',   icon: '👟', level: 0, baseCost: 10,        costMultiplier: 1.15, baseMps: 0.05, currency: 'distance' },
+                nutrition:    { label: 'Nutrition',      icon: '🍎',  level: 0, baseCost: 100,       costMultiplier: 1.22, baseMps: 0.5,  currency: 'distance' },
+                partner:    { label: 'Training Partner',icon: '🤝',  level: 0, baseCost: 5,         costMultiplier: 1.20, baseMps: 0.25, currency: 'money' },
+                treadmill:  { label: 'Home Treadmill',  icon: '🏠',  level: 0, baseCost: 100,       costMultiplier: 1.25, baseMps: 1.5,  currency: 'money' },
+                coach:   { label: 'Coach',   icon: '👨‍🏫',  level: 0, baseCost: 1500,      costMultiplier: 1.30, baseMps: 10,   currency: 'money' },
+            },
+            upgrades: {
+                stridePower: { label: 'Stride Power', icon: '💨', level: 0, baseCost: 10, costMultiplier: 1.4, description: 'Increases distance per tap.', currency: 'distance' },
+                recovery: { label: 'Quick Rest', icon: '⚡️', level: 0, baseCost: 10, costMultiplier: 2.2, description: 'Reduces rest cooldown time.', currency: 'money' }
+            },
+            isResting: false, restTimer: 0, lastSaveTimestamp: Date.now(),
+        };
+    }
+    
+    // --- CORE GAME LOGIC ---
+    function tapToStride() {
+        if (gameState.energy.current <= 0 || gameState.isResting) return;
+        const distancePerTap = getStepsPerTap() / STEPS_TO_DISTANCE_CONVERSION;
+        const gainedDistance = distancePerTap * gameState.medalBoost;
+        gameState.distance += gainedDistance;
+        gameState.totalDistance += gainedDistance;
+        gameState.energy.current -= ENERGY_DRAIN_PER_TAP;
+        if (gameState.energy.current < 0) gameState.energy.current = 0;
+        // Automatically start rest if energy is depleted
+        if (gameState.energy.current <= 0 && !gameState.isResting) {
+            startRest();
+        }
+        updateUI(); // Responsiveness Fix: Update UI immediately on tap.
+    }
+    
+    function startRest() {
+        if(gameState.isResting) return;
+        gameState.isResting = true;
+        gameState.restTimer = getRestCooldown();
+        dom.tapAreaContent.classList.add('hidden');
+        dom.restContent.classList.remove('hidden');
+        dom.tapArea.style.cursor = 'not-allowed';
+    }
+
+    function gameLoop() {
+        const tickRatio = TICK_RATE / 1000;
+        if (gameState.isResting) {
+            gameState.restTimer -= tickRatio;
+            const energyRegen = (gameState.energy.max / getRestCooldown()) * tickRatio;
+            gameState.energy.current = Math.min(gameState.energy.max, gameState.energy.current + energyRegen);
+            if (gameState.restTimer <= 0) {
+                gameState.isResting = false;
+                gameState.energy.current = gameState.energy.max;
+                dom.tapAreaContent.classList.remove('hidden');
+                dom.restContent.classList.add('hidden');
+                dom.restButton.disabled = false;
+                dom.tapArea.style.cursor = 'pointer';
+            }
+        }
+        
+        const mps = getTotalMps();
+        const gainedDistance = mps * tickRatio;
+        gameState.distance += gainedDistance;
+        gameState.totalDistance += gainedDistance;
+        
+        const currentFanMilestone = Math.floor(gameState.totalDistance / 100);
+        if(currentFanMilestone > gameState.lastFanMilestone) {
+            const fansGained = currentFanMilestone - gameState.lastFanMilestone;
+            gameState.fans += Math.floor(fansGained * gameState.medalBoost);
+            gameState.lastFanMilestone = currentFanMilestone;
+        }
+
+        gameState.money += getMoneyPerSecond() * tickRatio;
+        updateUI();
+    }
+    
+    function genericBuy(name) {
+        const gen = gameState.generators[name];
+        const cost = getGeneratorCost(name);
+        if (gameState[gen.currency] >= cost) {
+            gameState[gen.currency] -= cost;
+            gen.level++;
+        }
+    }
+
+    function genericBuyUpgrade(name) {
+        const upgrade = gameState.upgrades[name];
+        const cost = getUpgradeCost(name);
+        if (gameState[upgrade.currency] >= cost) {
+            gameState[upgrade.currency] -= cost;
+            upgrade.level++;
+        }
+    }
+
+    // --- PRESTIGE & RACE LOGIC ---
+    function startRace() {
+        dom.raceModal.classList.add('active');
+        const totalMps = getTotalMps() + ((getStepsPerTap() / STEPS_TO_DISTANCE_CONVERSION) * 2 * gameState.medalBoost);
+        const raceTimeSeconds = MARATHON_DISTANCE / totalMps;
+        let visualProgress = 0;
+        const visualDuration = 20000;
+        const raceInterval = setInterval(() => {
+            visualProgress += TICK_RATE;
+            const percentComplete = Math.min(100, (visualProgress / visualDuration) * 100);
+            dom.raceProgressBar.style.width = `${percentComplete}%`;
+            dom.raceProgressBar.textContent = `${Math.floor(percentComplete)}%`;
+            const simulatedTime = (percentComplete / 100) * raceTimeSeconds;
+            dom.raceClock.textContent = formatTime(simulatedTime);
+            if (visualProgress >= visualDuration) {
+                clearInterval(raceInterval);
+                finishRace(raceTimeSeconds);
+            }
+        }, TICK_RATE);
+    }
+
+    function finishRace(raceTimeSeconds) {
+        dom.raceModal.classList.remove('active');
+        const medalsWon = calculateMedals(raceTimeSeconds);
+        dom.resultsTime.textContent = formatTime(raceTimeSeconds);
+        dom.resultsMedals.textContent = medalsWon;
+        dom.raceResultsModal.classList.add('active');
+        dom.prestigeButton.onclick = () => prestigeReset(medalsWon);
+    }
+
+    function calculateMedals(timeInSeconds) {
+        if (timeInSeconds <= 0) return 1000;
+        const medals = Math.floor(5 * Math.pow(1800 / timeInSeconds, 1.5));
+        return Math.max(1, medals);
+    }
+    
+    function prestigeReset(medalsWon) {
+        const medalsToKeep = gameState.medals + medalsWon;
+        gameState = getInitialState();
+        gameState.medals = medalsToKeep;
+        gameState.medalBoost = calculateMedalBoost(medalsToKeep);
+        dom.raceResultsModal.classList.remove('active');
+        initUI();
+        saveGame();
+    }
+
+    // --- HELPER & UI FUNCTIONS ---
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function formatNumber(num) {
+        if (num < 10000) return num.toFixed(1);
+        const suffixes = ["K", "M", "B", "T", "Qa", "Qi"];
+        const tier = Math.floor(Math.log10(num) / 3);
+        if (tier < 1) return num.toFixed(1);
+        const suffix = suffixes[tier - 1];
+        const scale = Math.pow(10, tier * 3);
+        const scaled = num / scale;
+        return scaled.toFixed(2) + suffix;
+    }
+
+    function getStepsPerTap() { return 10 + (gameState.upgrades.stridePower.level * 5); }
+    function getRestCooldown() {
+        const baseCooldown = 30;
+        const reduction = Math.pow(0.85, gameState.upgrades.recovery.level);
+        return Math.max(5, baseCooldown * reduction);
+    }
+    function getUpgradeCost(name) { const upg = gameState.upgrades[name]; return upg.baseCost * Math.pow(upg.costMultiplier, upg.level); }
+    function calculateMedalBoost(medals) { return (medals === 0) ? 1 : 1 + (Math.pow(medals, 0.7) / 10); }
+    function getGeneratorMps(name) { return gameState.generators[name].level * gameState.generators[name].baseMps; }
+    function getTotalMps() { let total = 0; for (const genName in gameState.generators) total += getGeneratorMps(genName); return total * gameState.medalBoost; }
+    function getMoneyPerSecond() { return gameState.fans * gameState.sponsorTier.moneyPerFanPerSecond * gameState.medalBoost; }
+    function getGeneratorCost(name) { const gen = gameState.generators[name]; return gen.baseCost * Math.pow(gen.costMultiplier, gen.level); }
+    
+    function updateUI() {
+        if(!dom) return; // Prevent errors on initial load
+        dom.energyValue.textContent = `${Math.floor(gameState.energy.current)}/${gameState.energy.max}`;
+        dom.energyBar.style.width = `${(gameState.energy.current / gameState.energy.max) * 100}%`;
+        dom.distanceValue.textContent = `${gameState.distance.toFixed(1)} m`;
+        dom.totalDistanceValue.textContent = gameState.totalDistance.toFixed(1);
+        const marathonProgress = (gameState.totalDistance / MARATHON_DISTANCE) * 100;
+        dom.marathonProgressBar.style.width = `${Math.min(100, marathonProgress)}%`;
+        dom.marathonProgressText.textContent = `${Math.floor(Math.min(100, marathonProgress))}% to Marathon`;
+        dom.fansValue.textContent = gameState.fans;
+        dom.moneyValue.textContent = `$${gameState.money.toFixed(2)}`;
+        dom.medalsValue.textContent = `🏅 ${gameState.medals}`;
+        dom.medalBoostValue.textContent = ((gameState.medalBoost - 1) * 100).toFixed(2);
+        if (gameState.isResting) dom.restTimerDisplay.textContent = `${Math.ceil(gameState.restTimer)}s`;
+        dom.raceDayButton.classList.toggle('hidden', gameState.totalDistance < MARATHON_DISTANCE);
+        dom.raceDayButton.classList.toggle('glowing-button', gameState.totalDistance >= MARATHON_DISTANCE);
+        dom.distancePerSecond.textContent = getTotalMps().toFixed(2);
+        for(const name in gameState.generators) {
+            const gen = gameState.generators[name];
+            const cost = getGeneratorCost(name);
+            document.getElementById(`buy-${name}`).disabled = gameState[gen.currency] < cost;
+            const costEl = document.getElementById(`cost-${name}`);
+            costEl.textContent = gen.currency === 'money' ? cost.toFixed(2) : formatNumber(cost);
+            document.getElementById(`level-${name}`).textContent = gen.level;
+            document.getElementById(`gps-${name}`).textContent = getGeneratorMps(name).toFixed(2);
+        }
+        for(const name in gameState.upgrades) {
+            const upg = gameState.upgrades[name];
+            const cost = getUpgradeCost(name);
+            document.getElementById(`buy-${name}`).disabled = gameState[upg.currency] < cost;
+            const costEl = document.getElementById(`cost-${name}`);
+            costEl.textContent = upg.currency === 'money' ? cost.toFixed(2) : formatNumber(cost);
+            document.getElementById(`level-${name}`).textContent = upg.level;
+            const effectEl = document.getElementById(`effect-${name}`);
+            if(name === 'stridePower') effectEl.textContent = `${(getStepsPerTap() / STEPS_TO_DISTANCE_CONVERSION).toFixed(2)} m per tap`;
+            if(name === 'recovery') effectEl.textContent = `${getRestCooldown().toFixed(1)}s cooldown`;
+        }
+    }
+
+    function initUI() {
+        // Init Generators
+        const genContainer = dom.generatorsContainer;
+        while(genContainer.children.length > 1) genContainer.removeChild(genContainer.lastChild);
+        for (const name in gameState.generators) {
+            const gen = gameState.generators[name];
+            const cost = getGeneratorCost(name);
+            const currencySymbol = gen.currency === 'money' ? '$' : '';
+            const currencySuffix = gen.currency === 'distance' ? ' m' : '';
+            const row = document.createElement('div');
+            row.className = 'bg-gray-700/50 p-3 rounded-lg flex justify-between items-center generator-row';
+            row.innerHTML = `
+                <div>
+                    <h3 class="font-semibold text-lg flex items-center"><span class="text-2xl mr-2">${gen.icon}</span> ${gen.label}</h3>
+                    <p class="text-sm opacity-80 pl-8">Level: <span id="level-${name}">${gen.level}</span> | +<span id="gps-${name}">${getGeneratorMps(name).toFixed(2)}</span> m/s</p>
+                </div>
+                <button id="buy-${name}" class="buy-button bg-indigo-500 hover:bg-indigo-600 font-bold py-2 px-4 rounded-lg shadow-md transition-all disabled:bg-gray-600 disabled:opacity-50">
+                    Buy: ${currencySymbol}<span id="cost-${name}">${gen.currency === 'money' ? cost.toFixed(2) : formatNumber(cost)}</span>${currencySuffix}
+                </button>`;
+            genContainer.appendChild(row);
+            document.getElementById(`buy-${name}`).addEventListener('click', () => genericBuy(name));
+        }
+
+        // Init Upgrades
+        const upgContainer = dom.upgradesContainer;
+        while(upgContainer.children.length > 1) upgContainer.removeChild(upgContainer.lastChild);
+        for (const name in gameState.upgrades) {
+            const upg = gameState.upgrades[name];
+            const cost = getUpgradeCost(name);
+            const currencySymbol = upg.currency === 'money' ? '$' : '';
+            const currencySuffix = upg.currency === 'distance' ? ' m' : '';
+            const row = document.createElement('div');
+            row.className = 'bg-gray-700/50 p-3 rounded-lg flex justify-between items-center generator-row';
+            row.innerHTML = `
+                <div>
+                    <h3 class="font-semibold text-lg flex items-center"><span class="text-2xl mr-2">${upg.icon}</span> ${upg.label}</h3>
+                    <p class="text-sm opacity-80 pl-8">${upg.description}</p>
+                    <p class="text-sm opacity-80 pl-8">Level: <span id="level-${name}">${upg.level}</span> | Effect: <span id="effect-${name}"></span></p>
+                </div>
+                <button id="buy-${name}" class="buy-button bg-indigo-500 hover:bg-indigo-600 font-bold py-2 px-4 rounded-lg shadow-md transition-all disabled:bg-gray-600 disabled:opacity-50">
+                    Buy: ${currencySymbol}<span id="cost-${name}">${upg.currency === 'money' ? cost.toFixed(2) : formatNumber(cost)}</span>${currencySuffix}
+                </button>`;
+            upgContainer.appendChild(row);
+            document.getElementById(`buy-${name}`).addEventListener('click', () => genericBuyUpgrade(name));
+        }
+
+        // Init Tabs
+        dom.tabGenerators.addEventListener('click', () => {
+            dom.tabGenerators.classList.add('border-indigo-500', 'text-white');
+            dom.tabGenerators.classList.remove('border-transparent', 'text-gray-400');
+            dom.tabUpgrades.classList.add('border-transparent', 'text-gray-400');
+            dom.tabUpgrades.classList.remove('border-indigo-500', 'text-white');
+            dom.generatorsContainer.classList.remove('hidden');
+            dom.upgradesContainer.classList.add('hidden');
+        });
+        dom.tabUpgrades.addEventListener('click', () => {
+            dom.tabUpgrades.classList.add('border-indigo-500', 'text-white');
+            dom.tabUpgrades.classList.remove('border-transparent', 'text-gray-400');
+            dom.tabGenerators.classList.add('border-transparent', 'text-gray-400');
+            dom.tabGenerators.classList.remove('border-indigo-500', 'text-white');
+            dom.upgradesContainer.classList.remove('hidden');
+            dom.generatorsContainer.classList.add('hidden');
+        });
+    }
+    
+    // --- PERSISTENCE & OFFLINE PROGRESS ---
+    function saveGame() { gameState.lastSaveTimestamp = Date.now(); localStorage.setItem('marathonMadnessSave', JSON.stringify(gameState)); }
+    function loadGame() {
+        const savedGame = localStorage.getItem('marathonMadnessSave');
+        if(savedGame) {
+            const loadedState = JSON.parse(savedGame);
+            const defaultState = getInitialState();
+
+            // Create the final state, starting with defaults, then applying the saved state.
+            gameState = {...defaultState, ...loadedState};
+            
+            // Now, specifically handle the 'generators' object to ensure new generators are added to existing saves.
+            const finalGenerators = defaultState.generators;
+            if (loadedState.generators) {
+                for (const genName in loadedState.generators) {
+                    if (finalGenerators[genName]) {
+                        // We take the level from the save, but keep all other properties from the default state.
+                        finalGenerators[genName].level = loadedState.generators[genName].level;
+                    }
+                }
+            }
+            gameState.generators = finalGenerators;
+
+            // Handle upgrades similarly to ensure forward-compatibility.
+            const finalUpgrades = defaultState.upgrades;
+            if(loadedState.upgrades) {
+                 for (const upgName in loadedState.upgrades) {
+                    if (finalUpgrades[upgName]) {
+                        finalUpgrades[upgName].level = loadedState.upgrades[upgName].level;
+                    }
+                }
+            }
+            gameState.upgrades = finalUpgrades;
+
+            // For saves made before totalDistance was tracked
+            if (!gameState.totalDistance || gameState.totalDistance < gameState.distance) {
+                gameState.totalDistance = gameState.distance;
+            }
+            gameState.medalBoost = calculateMedalBoost(gameState.medals);
+            calculateOfflineProgress();
+        } else {
+            gameState = getInitialState();
+        }
+    }
+
+    function calculateOfflineProgress() {
+        const now = Date.now();
+        const offlineSeconds = Math.min((now - (gameState.lastSaveTimestamp || now)) / 1000, MAX_OFFLINE_HOURS * 3600);
+        if (offlineSeconds <= 10) return;
+
+        const mps = getTotalMps();
+        const moneyPerSec = getMoneyPerSecond();
+        const distanceGained = mps * offlineSeconds;
+
+        const oldFanMilestone = Math.floor(gameState.totalDistance / 100);
+        const newTotalDistance = gameState.totalDistance + distanceGained;
+        const newFanMilestone = Math.floor(newTotalDistance / 100);
+        const fansGained = newFanMilestone - oldFanMilestone;
+        const boostedFansGained = fansGained > 0 ? Math.floor(fansGained * gameState.medalBoost) : 0;
+
+        const moneyGained = moneyPerSec * offlineSeconds + (boostedFansGained * gameState.sponsorTier.moneyPerFanPerSecond * gameState.medalBoost) * offlineSeconds / 2;
+
+        gameState.distance += distanceGained;
+        gameState.totalDistance += distanceGained;
+        gameState.fans += boostedFansGained;
+        gameState.lastFanMilestone = Math.floor(gameState.totalDistance / 100);
+
+        dom.offlineTime.textContent = formatTime(offlineSeconds);
+        dom.offlineDistance.textContent = `${distanceGained.toFixed(1)} m`;
+        dom.offlineFans.textContent = `${boostedFansGained}`;
+        dom.offlineMoney.textContent = `$${moneyGained.toFixed(2)}`;
+        dom.offlineModal.classList.add('active');
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+        dom = {
+            energyValue: document.getElementById('energyValue'), energyBar: document.getElementById('energyBar'),
+            distanceValue: document.getElementById('distanceValue'), distancePerSecond: document.getElementById('distancePerSecond'),
+            totalDistanceValue: document.getElementById('totalDistanceValue'),
+            marathonProgressBar: document.getElementById('marathonProgressBar'),
+            marathonProgressText: document.getElementById('marathonProgressText'),
+            fansValue: document.getElementById('fansValue'), moneyValue: document.getElementById('moneyValue'),
+            medalsValue: document.getElementById('medalsValue'), medalBoostValue: document.getElementById('medalBoostValue'),
+            raceDayButton: document.getElementById('raceDayButton'), tapArea: document.getElementById('tapArea'),
+            tapAreaContent: document.getElementById('tapAreaContent'),
+            restContent: document.getElementById('restContent'), restTimerDisplay: document.getElementById('restTimer'),
+            generatorsContainer: document.getElementById('generators'), 
+            upgradesContainer: document.getElementById('upgrades'),
+            tabGenerators: document.getElementById('tab-generators'),
+            tabUpgrades: document.getElementById('tab-upgrades'),
+            raceModal: document.getElementById('raceModal'),
+            raceProgressBar: document.getElementById('raceProgressBar'), raceClock: document.getElementById('raceClock'),
+            raceResultsModal: document.getElementById('raceResultsModal'), resultsTime: document.getElementById('resultsTime'),
+            resultsMedals: document.getElementById('resultsMedals'), prestigeButton: document.getElementById('prestigeButton'),
+            offlineModal: document.getElementById('offlineModal'), offlineTime: document.getElementById('offlineTime'),
+            offlineDistance: document.getElementById('offlineDistance'), offlineFans: document.getElementById('offlineFans'),
+            offlineMoney: document.getElementById('offlineMoney'), closeOfflineModalButton: document.getElementById('closeOfflineModalButton'),
+            aboutLink: document.getElementById('aboutLink'),
+            aboutModal: document.getElementById('aboutModal'),
+            closeAboutModalButton: document.getElementById('closeAboutModalButton'),
+        };
+
+        loadGame();
+        initUI();
+        updateUI();
+
+        dom.tapArea.addEventListener('click', tapToStride);
+        dom.raceDayButton.addEventListener('click', startRace);
+        dom.closeOfflineModalButton.addEventListener('click', () => dom.offlineModal.classList.remove('active'));
+        dom.aboutLink.addEventListener('click', (e) => { e.preventDefault(); dom.aboutModal.classList.add('active'); });
+        dom.closeAboutModalButton.addEventListener('click', () => dom.aboutModal.classList.remove('active'));
+
+        setInterval(gameLoop, TICK_RATE);
+        setInterval(saveGame, 15000);
+        console.log("Marathon Madness Initialized: All systems go!");
+    };
+</script>
+<!--客服 开始-->
+<script src="//g8hh.github.io/static/js/jquery.min.js"></script>
+<link rel="stylesheet" href="//g8hh.github.io/static/css/kf.css" type="text/css" media="screen" charset="utf-8">
+<script src="//g8hh.github.io/static/js/kf.js"></script>
+<!-- 客服 结束 -->
+<!--站长统计-->
+    <div style="display: none">
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6581389daf4dd6fe7dbb4d20fdcb52a6";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+    </div>
+</body>
+</html>
